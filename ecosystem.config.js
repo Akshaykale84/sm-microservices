@@ -18,19 +18,19 @@ module.exports = {
     restartDelay: 1000,
     instances: 1,
     autorestart: true,
-    exec_mode:"fork",
+    exec_mode: "fork",
     watch: false,
     max_memory_restart: '200M',
     env: {
       ...commonEnv.dev,
       SERVICE_NAME: 'sm-api',
-      PORT: 9999,
+      PORT: 5000,
       NODE_ENV: 'development'
     },
     env_production: {
       ...commonEnv.prod,
       SERVICE_NAME: 'sm-api',
-      PORT: 9999,
+      PORT: 5000,
       NODE_ENV: 'production'
     }
   },
@@ -42,20 +42,45 @@ module.exports = {
     restartDelay: 1000,
     instances: 1,
     autorestart: true,
-    exec_mode:"fork",
+    exec_mode: "fork",
     watch: false,
     max_memory_restart: '200M',
     env: {
       ...commonEnv.dev,
-       SERVICE_NAME: 'sm-comm',
-      PORT: 4000,
+      SERVICE_NAME: 'sm-comm',
+      PORT: 8000,
       NODE_ENV: 'development'
     },
     env_production: {
       ...commonEnv.prod,
       SERVICE_NAME: 'sm-comm',
-      PORT: 4000,
+      PORT: 8000,
       NODE_ENV: 'production'
     }
-  }]
+  },
+  {
+    cwd: 'sm-likes',
+    name: 'sm-likes',
+    script: './sm-likes/index.js',
+    args: 'run build',
+    restartDelay: 1000,
+    instances: 1,
+    autorestart: true,
+    exec_mode: "fork",
+    watch: false,
+    max_memory_restart: '200M',
+    env: {
+      ...commonEnv.dev,
+      SERVICE_NAME: 'sm-likes',
+      PORT: 7000,
+      NODE_ENV: 'development'
+    },
+    env_production: {
+      ...commonEnv.prod,
+      SERVICE_NAME: 'sm-likes',
+      PORT: 7000,
+      NODE_ENV: 'production'
+    }
+  }
+  ]
 };

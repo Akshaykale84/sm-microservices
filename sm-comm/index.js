@@ -1,15 +1,22 @@
 import express from 'express';
+import cors from 'cors';
 import create from './routes/create.js';
 import remove from './routes/remove.js';
 import reply from './routes/reply.js';
 
 const app = express();
 
-app.use('/create', create);
-app.use('/remove', remove);
-app.use('/reply', reply);
+app.use(express.json());
+// app.use(cors());
+app.use('/comm/create', create);
+app.use('/comm/remove', remove);
+app.use('/comm/reply', reply);
 app.get('/',(req, res)=>{
     res.send("sm-comm");
 });
+app.get('/comm',(req, res)=>{
+    res.send("sm-comm//");
+});
 
-app.listen(4000)
+
+app.listen(8000)
