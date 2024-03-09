@@ -7,7 +7,7 @@ import aws from 'aws-sdk';
 import { createClient } from 'redis';
 import { commandOptions } from 'redis';
 
-const client = createClient({
+const publisher = createClient({
     username: process.env.REDIS_USER,
     password: process.env.REDIS_PASS,
     socket: {
@@ -15,10 +15,10 @@ const client = createClient({
         port: process.env.REDIS_PORT
     }
 });
-client.on('error', err => console.log('Redis Client Error', err));
-await client.connect()
+publisher.on('error', err => console.log('Redis Client Error', err));
+await publisher.connect()
 const insertToQueue = async (data)=>{
-    await client.lPush("like-queue", JSON.stringify(data));
+    await publisher.lPush("like-queue", JSON.stringify(data));
 
 }
 

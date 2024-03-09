@@ -4,6 +4,7 @@ import sendOtp from './routes/sendOtp.js';
 import verifyOtp from './routes/verifyOtp.js'
 import login from './routes/login.js';
 import cors from 'cors'
+import './services/users.js'
 const app = express();
 
 app.use(cors());

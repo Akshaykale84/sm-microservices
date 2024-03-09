@@ -2,7 +2,7 @@ import '../config/dbConfig.js';
 import likesSchema from '../models/likes.js';
 import { createClient, commandOptions } from 'redis';
 
-const client = createClient({
+const subscriber = createClient({
     username: process.env.REDIS_USER,
     password: process.env.REDIS_PASS,
     socket: {
@@ -10,7 +10,7 @@ const client = createClient({
         port: process.env.REDIS_PORT
     }
 });
-client.on('error', err => console.log('Redis Client Error', err));
+subscriber.on('error', err => console.log('Redis Client Error', err));
 function entryInLikes(data) {
     const likesData = {};
     likesData.postId = data.postId;
@@ -119,9 +119,9 @@ class LikesApi {
 
 async function main() {
     console.log('redis');
-    await client.connect();
+    await subscriber.connect();
     while (1) {
-        const response = await client.brPop(
+        const response = await subscriber.brPop(
             commandOptions({ isolated: true }),
             'like-queue',
             0

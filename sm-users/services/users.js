@@ -6,6 +6,29 @@ import otpSchema from '../models/otp.js';
 import { v4 as uuid } from 'uuid';
 import axios from 'axios';
 
+import { createClient, commandOptions } from 'redis';
+
+const subscriber = createClient({
+    username: process.env.REDIS_USER,
+    password: process.env.REDIS_PASS,
+    socket: {
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT
+    }
+});
+
+const publisher = createClient({
+    username: process.env.REDIS_USER,
+    password: process.env.REDIS_PASS,
+    socket: {
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT
+    }
+});
+subscriber.on('error', err => console.log('Redis Client Error', err));
+publisher.on('error', err => console.log('Redis Client Error', err));
+await publisher.connect();
+
 function getUid() {
     const id = `user-${uuid()}`;
     return id;
@@ -22,21 +45,39 @@ const isExistingUser = async (email) => {
     return !!result;
 }
 
+const insertToQueue = async (data) => {
+    await publisher.lPush("mail-queue", JSON.stringify(data));
+}
+
+const registerBgTasks = async (data) => {
+    axios.post('http://localhost:12000/connect/create', { userId: data.userId })
+        .then((value) => {
+            console.log(`connection created for user: ${data.userId}`);
+            Mails.sendWelcomeMail(data.userName, data.email)
+        }) //Have to write log for connection creation
+        .catch((e) => { console.log(`error while creating connection for user: ${data.userId}`); })
+}
+
 class UserApi {
     static async sendOtp(data) {
+        data.type = 'OTP_MAILS'
         const isExUser = await isExistingUser(data.email);
         return new Promise((resolve, reject) => {
             console.log(isExUser)
             if (!isExUser) {
-                Mails.sendOTP(data.email)
-                    .then((result) => {
-                        resolve(result)
-                        console.log(`OTP sent to ${data.email}`);
-                    })
-                    .catch((error) => {
-                        console.error('Error:', error.message);
-                        reject(error.message)
-                    });
+                // Mails.sendOTP(data.email)
+                //     .then((result) => {
+                //         resolve(result)
+                //         console.log(`OTP sent to ${data.email}`);
+                //     })
+                //     .catch((error) => {
+                //         console.error('Error:', error.message);
+                //         reject(error.message)
+                //     });
+                insertToQueue(data).then(() => {
+                    console.log('inserted');
+                    resolve("success")
+                })
             }
             else {
                 resolve(`user already exists with ${data.email}`)
@@ -78,6 +119,7 @@ class UserApi {
 
     static async register(data) {
         data.userId = getUid();
+        data.type = 'REGISTER_BG_TASKS'
         const hash = await encrypt.encryptPass(data.password);
         data.password = hash
         const isUNameTaken = await isUserNameTaken(data.userName);
@@ -86,12 +128,15 @@ class UserApi {
                 try {
                     const user = new userSchema(data);
                     const result = user.save(); //logger required
-                    axios.post('http://localhost:12000/connect/create', { userId: data.userId })
-                        .then((value) => { 
-                            console.log(`connection created for user: ${data.userId}`); 
-                            Mails.sendWelcomeMail(data.userName, data.email)
-                        }) //Have to write log for connection creation
-                        .catch((e) => { console.log(`error while creating connection for user: ${data.userId}`); })
+                    insertToQueue(data).then(() => {
+                        console.log('inserted');
+                    })
+                    // axios.post('http://localhost:12000/connect/create', { userId: data.userId })
+                    //     .then((value) => {
+                    //         console.log(`connection created for user: ${data.userId}`);
+                    //         Mails.sendWelcomeMail(data.userName, data.email)
+                    //     }) //Have to write log for connection creation
+                    //     .catch((e) => { console.log(`error while creating connection for user: ${data.userId}`); })
                     resolve(result);
                 } catch (e) {
                     console.log(e);
@@ -104,5 +149,49 @@ class UserApi {
         })
     }
 }
+
+async function main() {
+    console.log('redis');
+    await subscriber.connect();
+    while (1) {
+        const response = await subscriber.brPop(
+            commandOptions({ isolated: true }),
+            'mail-queue',
+            0
+        );
+        console.log(JSON.parse(response.element));
+        const data = JSON.parse(response.element);
+       
+        switch (data.type) {
+            case 'OTP_MAILS':
+                Mails.sendOTP(data.email)
+                    .then((result) => {
+                        console.log(`OTP sent to ${data.email}`);
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error.message);
+                    });
+                break;
+            case 'REGISTER_BG_TASKS':
+                registerBgTasks(data).then(()=>{
+                    console.log(`BG tasks completed for ${data.userId}`);
+                })
+                break;
+            case 'COMM_LIKE_INSERT':
+
+                break;
+            case 'COMM_LIKE_REMOVE':
+
+                break;
+            default:
+
+                break;
+        }
+        // LikesApi.entryInLikes(data)
+    }
+
+}
+
+main();
 
 export default UserApi;
