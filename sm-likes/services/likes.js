@@ -22,7 +22,7 @@ const getLike = (data)=>{
     return new Promise((resolve, reject)=>{
         try{
             // const text = new likesSchema(likesData);
-            const result = likesSchema.find(data);
+            const result = likesSchema.findOne({postId: data.postId});
             resolve(result);
         } catch(e){
             console.log("reject");
@@ -32,7 +32,14 @@ const getLike = (data)=>{
 }
 
 const updateLike = (data)=>{
-
+    return new Promise((resolve, reject)=>{
+        try{
+            const result = likesSchema.updateOne({postId: data.postId}, {$set:{noOfLikes: data.noOfLikes, likes: data.likes}});
+            resolve(result);
+        } catch(e){
+            reject("error while adding like");
+        }
+    })
 }
 class LikesApi{
 
@@ -58,15 +65,37 @@ class LikesApi{
         const postId = data.postId;
         const userId = data.userId;
 
-        return new Promise(async(resolve, reject)=>{
+        return new Promise((resolve, reject)=>{
             try{
-                // const result = await getLikes(data);
-                getLike(data).then((result)=>{
-                    result[0].likes.push(userId);
-                    result[0].noOfLikes += 1;
-                    console.log(result);
-                    resolve(result);
-                })
+                // getLike(data).then((result)=>{
+                //     result.likes.push(userId);
+                //     result.noOfLikes += 1;
+                //     updateLike(result);
+                //     resolve(result);
+                // })
+                const result = likesSchema.updateOne({postId: data.postId}, {$push: {likes: data.userId}, $inc: {noOfLikes: 1}});
+                resolve(result);
+            } catch(e){
+                console.log("reject");
+                reject("messed up")
+            }
+        })
+    }
+
+    static unLikePost(data){
+        const postId = data.postId;
+        const userId = data.userId;
+
+        return new Promise((resolve, reject)=>{
+            try{
+                // getLike(data).then((result)=>{
+                //     result.likes.pop(userId);
+                //     result.noOfLikes -= 1;
+                //     updateLike(result);
+                //     resolve(result);
+                // })
+                const result = likesSchema.updateOne({postId: data.postId}, {$pull: {likes: data.userId}, $inc: {noOfLikes: -1}});
+                resolve(result);
             } catch(e){
                 console.log("reject");
                 reject("messed up")
