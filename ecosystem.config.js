@@ -129,6 +129,30 @@ module.exports = {
       PORT: 11000,
       NODE_ENV: 'production'
     }
+  },
+  {
+    cwd: 'sm-connect',
+    name: 'sm-connect',
+    script: './sm-connect/index.js',
+    args: 'run build',
+    restartDelay: 1000,
+    instances: 1,
+    autorestart: true,
+    exec_mode: "fork",
+    watch: false,
+    max_memory_restart: '200M',
+    env: {
+      ...commonEnv.dev,
+      SERVICE_NAME: 'sm-connect',
+      PORT: 12000,
+      NODE_ENV: 'development'
+    },
+    env_production: {
+      ...commonEnv.prod,
+      SERVICE_NAME: 'sm-connect',
+      PORT: 12000,
+      NODE_ENV: 'production'
+    }
   }
   ]
 };

@@ -51,8 +51,8 @@ class LikesApi{
         likesData.likes = [];
         return new Promise((resolve, reject)=>{
             try {
-                const text = new likesSchema(likesData);
-                const result = text.save();
+                const like = new likesSchema(likesData);
+                const result = like.save();
                 resolve(result);
             } catch (err) {
                 console.log("reject");

@@ -2,6 +2,7 @@ import '../config/dbConfig.js';
 import userSchema from '../models/user.js';
 import encrypt from '../services/encryption.js'
 import { v4 as uuid } from 'uuid';
+import axios from 'axios';
 
 function getUid() {
     const id = `user-${uuid()}`;
@@ -33,6 +34,9 @@ class UserApi {
                 try {
                     const user = new userSchema(data);
                     const result = user.save(); //logger required
+                    axios.post('http://localhost:12000/connect/create', {userId: data.userId})
+                    .then((value) => { }) //Have to write log for connection creation
+                    .catch((e) => { })
                     resolve(result);
                 } catch (e) {
                     reject(`error while registering user: ${data.userId}`); //logger required
