@@ -1,4 +1,4 @@
-import getConn from'../config/dbConfig.js';
+import getConn from '../config/dbConfig.js';
 import comm from '../models/comm.js';
 import { v4 as uuid } from 'uuid';
 
@@ -10,7 +10,7 @@ function getUid() {
 
 class CommApi {
     static createComm(data) {
-        data.uid = getUid();
+        data.commId = getUid();
         const db = getConn()
         return new Promise((resolve, reject) => {
             try {
@@ -26,19 +26,33 @@ class CommApi {
         })
     }
 
-    static getCommentsByPost(postId){
+    static getCommentsByPost(postId) {
         const db = getConn()
-        return new Promise((resolve, reject)=>{
-            comm.find({postId: postId}).sort({createdAt: -1}).then(data => {
-                if(data){
+        return new Promise((resolve, reject) => {
+            comm.find({ postId: postId }).sort({ createdAt: -1 }).then(data => {
+                if (data) {
                     resolve(data)
                 }
-                else{
+                else {
                     reject('errrrr')
                 }
             })
         })
 
+    }
+
+    static async deleteCommentByUserId(data) {
+        return new Promise((resolve, reject) => {
+            console.log(data);
+            comm.deleteOne({ commId: data.commId, userId: data.userId }).then(data => {
+                if (data) {
+                    resolve(data)
+                }
+            }).catch(e => {
+                console.log(e);
+                reject(e)
+            })
+        })
     }
 }
 

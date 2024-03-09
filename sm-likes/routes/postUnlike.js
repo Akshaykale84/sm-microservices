@@ -6,7 +6,8 @@ router.post('/', (req, res)=>{
     likesApi.unLikePost(req.body).then((result)=>{
         res.send(result);
     }).catch((e)=>{
-        res.send("error while making post as liked");
+        res.status(500).send('error');
+        console.log("error while making post as unliked");
     })
 });
 

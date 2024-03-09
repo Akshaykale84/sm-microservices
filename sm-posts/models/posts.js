@@ -3,10 +3,10 @@ import mongoose from "mongoose";
 const postSchema = new mongoose.Schema({
     postId: String,
     userId: String,
-    comments: Array,
     likes: Number,
-    user: String,
-    isLiked: Boolean
+    caption: String,
+    isLiked: Boolean,
+    imgUrl: String
 
 }, {
     timestamps: true,

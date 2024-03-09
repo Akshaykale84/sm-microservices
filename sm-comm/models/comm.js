@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const commSchema = new mongoose.Schema({
-    uid: String,
+    commId: String,
     userId: String,
     postId: String,
     text: String,
@@ -10,4 +10,4 @@ const commSchema = new mongoose.Schema({
 }
 );
 
-export default mongoose.model('comm', commSchema);
+export default mongoose.model('comms', commSchema);

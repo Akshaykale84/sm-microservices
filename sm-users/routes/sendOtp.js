@@ -3,10 +3,11 @@ import userApi from '../services/users.js'
 const router = express.Router();
 
 router.get('/', (req, res)=>{
-    userApi.sendOtp(req.body).then((value)=>{
-        res.send(value);
+    userApi.sendOtp(req.body).then((otp)=>{
+        res.send(otp);
     }).catch((e)=>{
-        res.send(e);
+        res.status(500).send('error');
+        console.log('error while sending otp');
     })
 });
 

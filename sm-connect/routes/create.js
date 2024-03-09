@@ -10,7 +10,8 @@ router.post('/', (req, res)=>{
     connectApi.create(req.body.userId).then((result)=>{
         res.send(result);
     }).catch((err)=>{
-        res.send(`error while creating the connection for ${req.body.userId}`);
+        res.status(500).send('error');
+        console.log(`error while creating the connection for ${req.body.userId}`);
     })
 });
 

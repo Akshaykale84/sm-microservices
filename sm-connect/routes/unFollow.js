@@ -10,7 +10,7 @@ router.post('/',(req, res)=>{
     connectApi.unFollow(req.body).then((result)=>{
         res.send(result);
     }).catch((e)=>{
-        res.send("error while unfollowing");
+        res.status(500).send('error');
     })
 })
 

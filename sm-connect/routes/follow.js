@@ -10,7 +10,7 @@ router.post('/',(req, res)=>{
     connectApi.follow(req.body).then((result)=>{
         res.send(result);
     }).catch((e)=>{
-        res.send("error while following");
+        res.status(500).send('error');
     })
 })
 

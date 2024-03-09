@@ -11,7 +11,8 @@ router.post('/', (req, res)=>{
     likesApi.entryInLikes(req.body).then((result)=>{
         res.send(result);
     }).catch((err)=>{
-        res.send("error while creating the like");
+        res.status(500).send('error');
+        console.log('error while creating likes entry');
     })
 });
 

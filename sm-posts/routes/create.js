@@ -6,8 +6,9 @@ const router = express.Router();
 router.post('/', (req, res)=>{
     postApi.createPost(req.body).then((result)=>{
         res.send(result);
-    }).catch((err)=>{
-        res.send("error while creating the post");
+    }).catch(err =>{
+        res.status(500).send('error');
+        console.log("error while creating the post");
     })
 });
 

@@ -7,7 +7,7 @@ router.post('/', (req, res)=>{
     commApi.createComm(req.body).then((result)=>{
         res.send(result);
     }).catch((e)=>{
-        res.send(e);
+        res.status(500).send('error');
     });
 })
 

@@ -6,7 +6,8 @@ router.post('/', (req, res)=>{
     userApi.register(req.body).then((value)=>{
         res.send(value);
     }).catch((e)=>{
-        res.send(e);
+        res.status(500).send('error');
+        console.log('error while registering');
     })
 });
 
