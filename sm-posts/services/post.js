@@ -1,4 +1,4 @@
-import '../config/dbConfig.js';
+import getConn from'../config/dbConfig.js';
 import postSchema from '../models/posts.js';
 import { v4 as uuid } from 'uuid';
 import axios from 'axios';
@@ -13,6 +13,7 @@ function getUid() {
 class PostApi {
     static createPost(data) {
         data.postId = getUid();
+        const db = getConn();
         return new Promise((resolve, reject) => {
             try {
                 const text = new postSchema(data);
@@ -24,6 +25,8 @@ class PostApi {
             } catch (err) {
                 console.log("reject");
                 reject("messed up")
+            } finally {
+                db.disconnect();
             }
         })
     }

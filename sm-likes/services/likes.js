@@ -1,4 +1,4 @@
-import '../config/dbConfig.js';
+import getConn from'../config/dbConfig.js';
 import likesSchema from '../models/likes.js';
 
 function entryInLikes(data){
@@ -44,6 +44,7 @@ const updateLike = (data)=>{
 class LikesApi{
 
     static entryInLikes(data){
+        const db = getConn()
         const likesData={};
         likesData.postId = data.postId;
         likesData.userId = data.userId;
@@ -57,11 +58,14 @@ class LikesApi{
             } catch (err) {
                 console.log("reject");
                 reject("messed up")
+            } finally {
+                db.disconnect();
             }
         })
     }
 
     static likePost(data){
+        const db = getConn()
         const postId = data.postId;
         const userId = data.userId;
 
@@ -78,11 +82,14 @@ class LikesApi{
             } catch(e){
                 console.log("reject");
                 reject("messed up")
+            } finally {
+                db.disconnect();
             }
         })
     }
 
     static unLikePost(data){
+        const db = getConn()
         const postId = data.postId;
         const userId = data.userId;
 
@@ -99,6 +106,8 @@ class LikesApi{
             } catch(e){
                 console.log("reject");
                 reject("messed up")
+            } finally {
+                db.disconnect();
             }
         })
     }

@@ -1,10 +1,11 @@
-import '../config/dbConfig.js';
+import getConn from'../config/dbConfig.js';
 import connectSchema from '../models/connect.js';
 
 
 class connectApi{
 
     static create(userId){
+        const db = getConn()
         const connectionData={};
         connectionData.userId = userId;
         connectionData.followers = [];
@@ -16,15 +17,18 @@ class connectApi{
                 const connect = new connectSchema(connectionData);
                 const result = connect.save();
                 resolve(result);
-            } catch (err) {
-                console.log("reject");
+            } catch (e) {
+                console.log(e);
                 reject("messed up")
+            } finally {
+                db.disconnect();
             }
         })
 
     }
 
     static follow(data){
+        const db = getConn()
         const followerId = data.followerId;
         const followeeId = data.followeeId;
 
@@ -36,11 +40,14 @@ class connectApi{
             } catch(e){
                 console.log(e);
                 reject("messed up")
+            } finally {
+                // db.disconnect();
             }
         })
     }
 
     static unFollow(data){
+        const db = getConn()
         const unFollowerId = data.unFollowerId;
         const unFolloweeId = data.unFolloweeId;
 
@@ -52,6 +59,8 @@ class connectApi{
             } catch(e){
                 console.log(e);
                 reject("messed up")
+            } finally {
+                // db.disconnect();
             }
         })
     }

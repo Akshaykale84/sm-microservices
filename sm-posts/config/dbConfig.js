@@ -1,2 +1,9 @@
 import mongoose from "mongoose";
-mongoose.connect("mongodb://localhost:27017/sm-db");
+import 'dotenv/config'
+// const db = await mongoose.connect(process.env.MONGODB_URL);
+
+async function getConn(){
+    const db = await mongoose.connect(process.env.MONGODB_URL);
+}
+
+export default getConn;

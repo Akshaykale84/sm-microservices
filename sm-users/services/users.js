@@ -1,4 +1,4 @@
-import '../config/dbConfig.js';
+import getConn from'../config/dbConfig.js';
 import userSchema from '../models/user.js';
 import encrypt from '../services/encryption.js'
 import { v4 as uuid } from 'uuid';
@@ -23,6 +23,7 @@ const isExistingUser = async (email) => {
 class UserApi {
     static async register(data) {
         data.userId = getUid();
+        const db = getConn()
         const hash = await encrypt.encryptPass(data.password);
         data.password = hash
         const isExUser = await isExistingUser(data.email);
@@ -40,6 +41,8 @@ class UserApi {
                     resolve(result);
                 } catch (e) {
                     reject(`error while registering user: ${data.userId}`); //logger required
+                } finally {
+                    db.disconnect();
                 }
             }
             else if (isExUser && isUNameTaken) {
@@ -54,7 +57,7 @@ class UserApi {
     }
 
     static async login(data) {
-
+        const db = getConn()
         return new Promise((resolve, reject) => {
             isExistingUser(data.email).then(async (isRegistered) => {
                 if (isRegistered) {
