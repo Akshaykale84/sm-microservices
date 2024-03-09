@@ -11,4 +11,6 @@ router.post('/', (req, res)=>{
     })
 });
 
+router.get('/get',postApi.getPost);
+
 export default router;

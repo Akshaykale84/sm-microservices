@@ -5,6 +5,9 @@ const commSchema = new mongoose.Schema({
     userId: String,
     postId: String,
     text: String,
-});
+}, {
+    timestamps: true,
+}
+);
 
 export default mongoose.model('comm', commSchema);

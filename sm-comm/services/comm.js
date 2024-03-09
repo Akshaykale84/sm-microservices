@@ -13,34 +13,29 @@ class CommApi {
         data.uid = getUid();
         return new Promise((resolve, reject) => {
             try {
-                const text = new comm(data);
-                const result = text.save();
+                const comment = new comm(data);
+                const result = comment.save();
                 resolve(result);
             } catch (err) {
                 console.log("reject");
-                reject("messed up")
+                reject(err)
             }
         })
     }
 
-    static getAllCommByPostId(postId) {
+    static getCommentsByPost(postId){
+        return new Promise((resolve, reject)=>{
+            comm.find({postId: postId}).sort({createdAt: -1}).then(data => {
+                if(data){
+                    resolve(data)
+                }
+                else{
+                    reject('errrrr')
+                }
+            })
+        })
 
     }
-
-    static getAllCommByUserId(userId) {
-
-    }
-
-    static removeCommById(id) {
-
-    }
-
-    static editCommById(id) {
-
-    }
-
-
-
 }
 
 

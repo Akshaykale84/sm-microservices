@@ -5,7 +5,8 @@ const likesSchema = new mongoose.Schema({
     userId: String,
     noOfLikes: Number,
     likes: Array,
-      
+}, {
+    timestamps: true,
 });
 
 export default mongoose.model('likes', likesSchema);

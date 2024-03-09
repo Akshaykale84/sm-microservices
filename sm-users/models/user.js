@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema({
     photoUrl: String,
     userId: String
 
+}, {
+    timestamps: true,
 });
 
 export default mongoose.model('users', userSchema);
