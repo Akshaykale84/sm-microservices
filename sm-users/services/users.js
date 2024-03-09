@@ -1,6 +1,7 @@
-import getConn from'../config/dbConfig.js';
+import getConn from '../config/dbConfig.js';
 import userSchema from '../models/user.js';
 import encrypt from '../services/encryption.js'
+import sendOTP from './mails.js';
 import { v4 as uuid } from 'uuid';
 import axios from 'axios';
 
@@ -21,29 +22,27 @@ const isExistingUser = async (email) => {
 }
 
 class UserApi {
-    static async register(data) {
-        data.userId = getUid();
+    static async sendOtp(data) {
+        // data.userId = getUid();
         const db = getConn()
-        const hash = await encrypt.encryptPass(data.password);
-        data.password = hash
+        // const hash = await encrypt.encryptPass(data.password);
+        // data.password = hash
         const isExUser = await isExistingUser(data.email);
         const isUNameTaken = await isUserNameTaken(data.userName);
         return new Promise((resolve, reject) => {
             console.log(isExUser)
             console.log(isUNameTaken);
             if (!isExUser && !isUNameTaken) {
-                try {
-                    const user = new userSchema(data);
-                    const result = user.save(); //logger required
-                    axios.post('http://localhost:12000/connect/create', {userId: data.userId})
-                    .then((value) => { }) //Have to write log for connection creation
-                    .catch((e) => { })
-                    resolve(result);
-                } catch (e) {
-                    reject(`error while registering user: ${data.userId}`); //logger required
-                } finally {
-                    db.disconnect();
-                }
+                sendOTP(data.email)
+                    .then((otp) => {
+                        resolve(otp)
+                        console.log(`OTP sent to ${data.email}: ${otp}`);
+
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error.message);
+                        reject(error.message)
+                    });
             }
             else if (isExUser && isUNameTaken) {
                 reject(`user already exists with email: ${data.email} and username: ${data.userName}`)
@@ -51,7 +50,9 @@ class UserApi {
             else if (isUNameTaken && !isExUser) {
                 reject(`user already exists with username: ${data.userName}`)
             }
-            reject(`user already exists with email: ${data.email}`)
+            else if (isExUser) {
+                reject(`user already exists with email: ${data.email}`)
+            }
 
         })
     }
@@ -70,6 +71,27 @@ class UserApi {
                     reject(`User not found with ${data.email}`)
                 }
             })
+        })
+    }
+
+    static async register(data) {
+        data.userId = getUid();
+        const db = getConn()
+        const hash = await encrypt.encryptPass(data.password);
+        data.password = hash
+        return new Promise((resolve, reject) => {
+            try {
+                const user = new userSchema(data);
+                const result = user.save(); //logger required
+                axios.post('http://localhost:12000/connect/create', { userId: data.userId })
+                    .then((value) => { console.log(`connection created for user: ${data.userId}`); }) //Have to write log for connection creation
+                    .catch((e) => { })
+                resolve(result);
+            } catch (e) {
+                reject(`error while registering user: ${data.userId}`); //logger required
+            } finally {
+                db.disconnect();
+            }
         })
     }
 }

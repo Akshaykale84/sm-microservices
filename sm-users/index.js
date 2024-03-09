@@ -1,5 +1,6 @@
 import express from 'express';
 import register from './routes/register.js';
+import sendOtp from './routes/sendOtp.js';
 import login from './routes/login.js';
 import cors from 'cors'
 const app = express();
@@ -13,4 +14,5 @@ app.get('/users', (req, res)=>{
 
 app.use('/users/register', register);
 app.use('/users/login', login);
+app.use('/users/sendOtp', sendOtp)
 app.listen(11000);
