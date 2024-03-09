@@ -22,9 +22,15 @@ const postsProxy = createProxyMiddleware({
   changeOrigin: true
 });
 
+const usersProxy = createProxyMiddleware({
+  target: 'http://localhost:11000',
+  changeOrigin: true
+})
+
 app.use('/comm', commProxy);
 app.use('/likes', likesProxy);
 app.use('/posts', postsProxy);
+app.use('/users', usersProxy);
 
 
 app.listen(5000);

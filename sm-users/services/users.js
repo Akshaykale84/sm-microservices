@@ -1,5 +1,6 @@
 import '../config/dbConfig.js';
 import userSchema from '../models/user.js';
+import encrypt from '../services/encryption.js'
 import { v4 as uuid } from 'uuid';
 
 function getUid() {
@@ -14,12 +15,15 @@ const isUserNameTaken = async (userName) => {
 }
 const isExistingUser = async (email) => {
     const result = await userSchema.findOne({ email: email });
-    console.log(`in function ${!!result}`); //logger required
+    // console.log(`in function ${!!result}`); //logger required
     return !!result;
 }
+
 class UserApi {
     static async register(data) {
         data.userId = getUid();
+        const hash = await encrypt.encryptPass(data.password);
+        data.password = hash
         const isExUser = await isExistingUser(data.email);
         const isUNameTaken = await isUserNameTaken(data.userName);
         return new Promise((resolve, reject) => {
@@ -42,6 +46,23 @@ class UserApi {
             }
             reject(`user already exists with email: ${data.email}`)
 
+        })
+    }
+
+    static async login(data) {
+
+        return new Promise((resolve, reject) => {
+            isExistingUser(data.email).then(async (isRegistered) => {
+                if (isRegistered) {
+                    const user = await userSchema.findOne({ email: data.email });
+                    encrypt.validateUser(data.password, user.password).then(res => {
+                        res ? resolve(user) : reject('incorrect password');
+                    })
+                }
+                else {
+                    reject(`User not found with ${data.email}`)
+                }
+            })
         })
     }
 }
