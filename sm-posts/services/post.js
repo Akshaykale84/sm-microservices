@@ -31,25 +31,17 @@ class PostApi {
         })
     }
 
-    static async getPost(req, res) {
-
-        const cursor = await postSchema.find({}).cursor()
-            .pipe(JSONStream.stringify()).pipe(res)
-            // .pipe(res.type('stream+json'))
-            .on('data', (doc) => {
-                // console.log(doc);
-                // setInterval(function (){res.write(doc)}, 1000)
-                res.json(doc)
+    static async getPostByUser(userId) {
+        return new Promise((resolve, reject) => {
+            postSchema.find({userId: userId}).sort({createdAt: -1}).then(data => {
+                if(data){
+                    resolve(data)
+                }
+                else{
+                    reject('error')
+                }
             })
-            .on('end', function () {
-                res.end();
-                console.log('Done!');
-            });
-        // let x = new JsonStreamStringify(cursor).pipe(res)
-        // // x.on("data", (doc) => {
-        // //     console.log('hh');
-        // //     res.write(doc);
-        // });
+        })
     }
 }
 
