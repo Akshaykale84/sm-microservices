@@ -4,8 +4,8 @@ import remove from './routes/remove.js';
 import postLike from './routes/postLike.js';
 import postUnLike from './routes/postUnlike.js';
 import cors from 'cors';
+import './services/likes.js';
 const app = express();
-
 app.listen(7000)
 app.use(cors());
 app.use(express.json());

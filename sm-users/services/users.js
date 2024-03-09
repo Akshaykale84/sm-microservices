@@ -1,4 +1,4 @@
-import getConn from '../config/dbConfig.js';
+import '../config/dbConfig.js';
 import userSchema from '../models/user.js';
 import encrypt from '../services/encryption.js'
 import Mails from './mails.js';
@@ -24,7 +24,6 @@ const isExistingUser = async (email) => {
 
 class UserApi {
     static async sendOtp(data) {
-        const db = getConn()
         const isExUser = await isExistingUser(data.email);
         return new Promise((resolve, reject) => {
             console.log(isExUser)
@@ -46,7 +45,6 @@ class UserApi {
     }
 
     static async verifyOtp(data) {
-        const db = getConn()
         return new Promise((resolve, reject) => {
             try {
                 otpSchema.findOne({ email: data.email, otp: data.otp }).then(result => {
@@ -63,7 +61,6 @@ class UserApi {
     }
 
     static async login(data) {
-        const db = getConn()
         return new Promise((resolve, reject) => {
             isExistingUser(data.email).then(async (isRegistered) => {
                 if (isRegistered) {
@@ -81,7 +78,6 @@ class UserApi {
 
     static async register(data) {
         data.userId = getUid();
-        const db = getConn()
         const hash = await encrypt.encryptPass(data.password);
         data.password = hash
         const isUNameTaken = await isUserNameTaken(data.userName);

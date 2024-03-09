@@ -1,10 +1,26 @@
-import getConn from '../config/dbConfig.js';
+import '../config/dbConfig.js';
 import postSchema from '../models/posts.js';
 import { v4 as uuid } from 'uuid';
 import axios from 'axios';
 import 'dotenv/config'
 import aws from 'aws-sdk';
+import { createClient } from 'redis';
+import { commandOptions } from 'redis';
 
+const client = createClient({
+    username: process.env.REDIS_USER,
+    password: process.env.REDIS_PASS,
+    socket: {
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT
+    }
+});
+client.on('error', err => console.log('Redis Client Error', err));
+await client.connect()
+const insertToQueue = async (data)=>{
+    await client.lPush("like-queue", JSON.stringify(data));
+
+}
 
 const s3 = new aws.S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -47,26 +63,28 @@ const uploadToS3 = async (file, fileName) => {
 class PostApi {
     static async createPost(data) {
         data.postId = getUid();
-        const db = getConn();
+        data.type = 'POST_LIKE_INSERT'
         return new Promise((resolve, reject) => {
             try {
                 const post = new postSchema(data);
                 const result = post.save();
-                axios.post('http://localhost:7000/likes/create', data)
-                    .then((value) => { }) //Have to write log for like creation
-                    .catch((e) => { })
+                // axios.post('http://localhost:7000/likes/create', data)
+                //     .then((value) => { }) //Have to write log for like creation
+                //     .catch((e) => { })
+                insertToQueue(data).then(()=>{
+                    console.log('inserted');
+                }).catch((e)=>{
+                    console.log(e);
+                })
                 resolve(result);
             } catch (err) {
                 console.log("reject");
                 reject("error while registering the post into DB")
-            } finally {
-                db.disconnect();
             }
         })
     }
 
     static async getPostByUser(userId) {
-        const db = getConn();
         return new Promise((resolve, reject) => {
             postSchema.find({ userId: userId }).sort({ createdAt: -1 }).then(data => {
                 if (data) {
@@ -79,19 +97,25 @@ class PostApi {
         })
     }
 
-    static async deletePostByUserId(postId, userId) {
-        const db = getConn();
+    static async deletePostByUserId(data) {
+        data.type = 'POST_LIKE_REMOVE'
         return new Promise((resolve, reject) => {
-            postSchema.deleteOne({ postId: postId, userId: userId }).then(data => {
-                if (data) {
-                    const like = { postId: postId }
-                    axios.delete('http://localhost:7000/likes/remove', { data: { postId: postId }})
-                        .then((value) => { }) //Have to write log for like creation
-                        .catch((e) => { })
-                    resolve(data)
+            postSchema.deleteOne({ postId: data.postId, userId: data.userId }).then(res => {
+                if (res) {
+                    // const like = { postId: postId }
+                    // axios.delete('http://localhost:7000/likes/remove', { data: data})
+                    //     .then((value) => { }) //Have to write log for like removal
+                    //     .catch((e) => { })
+                    insertToQueue(data).then(()=>{
+                        console.log('inserted');
+                    }).catch((e)=>{
+                        console.log(e);
+                    })
+
+                    resolve(res)
                 }
             }).catch(e => {
-                reject('error')
+                reject(e)
             })
         })
     }

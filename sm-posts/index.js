@@ -57,7 +57,6 @@ async function fetchTotalPostCount() {
         return totalPostCount;
     } catch (error) {
         console.error('Error fetching total post count:', error.message);
-        process.exit(1);
     }
 }
 
@@ -65,19 +64,11 @@ async function fetchTotalPostCount() {
 fetchTotalPostCount();
 
 
-
-
-
 io.on('connection', (socket) => {
     console.log('A client connected');
     var sendData = true;
-    // var selfPost = false;
-    // Handle client-specific data if needed
-
-    // Function to fetch a random post not sent to the client
     const getPostLikes = async (postId) => {
         let likes = await LikeModel.findOne({postId: postId}, {noOfLikes:1, _id: 0});
-        // console.log(typeof(likes));
         return likes.noOfLikes;
     }
 
@@ -93,8 +84,6 @@ io.on('connection', (socket) => {
     const getRandomPost = async (clientId) => {
         try {
             let randomPost;
-            
-
             do {
                 randomPost = await PostModel.findOne().skip(Math.floor(Math.random() * totalPostCount));
             } while (clientSentPostIds.get(clientId)?.has(randomPost.postId));
@@ -123,7 +112,6 @@ io.on('connection', (socket) => {
 
                 // Add postId to the set of sent postIds for this client
                 clientSentPostIds.get(clientId).add(randomPost.postId);
-                
             }
             if(clientSentPostIds.get(clientId).size == totalPostCount - 20){
                 clientSentPostIds.get(clientId).clear();
@@ -138,7 +126,6 @@ io.on('connection', (socket) => {
     };
     client = socket.id
     // Start emitting random posts for the specific client
-    // emitRandomPosts(socket.id);
     socket.on('stop', (data) => {
         sendData = false;
         console.log(data);
@@ -155,12 +142,10 @@ io.on('connection', (socket) => {
         clientSentPostIds.delete(socket.id);
         connectedUsers.delete(socket.id);
         console.log(clientSentPostIds);
-        console.log('hhhh');
         console.log(connectedUsers);
     })
 
     socket.on('test', (data) =>{
-        // connectedUsers.set(socket.id, data)
         console.log(clientSentPostIds);
         console.log(connectedUsers);
     })

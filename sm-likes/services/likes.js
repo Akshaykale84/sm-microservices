@@ -1,6 +1,16 @@
-import getConn from '../config/dbConfig.js';
+import '../config/dbConfig.js';
 import likesSchema from '../models/likes.js';
+import { createClient, commandOptions } from 'redis';
 
+const client = createClient({
+    username: process.env.REDIS_USER,
+    password: process.env.REDIS_PASS,
+    socket: {
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT
+    }
+});
+client.on('error', err => console.log('Redis Client Error', err));
 function entryInLikes(data) {
     const likesData = {};
     likesData.postId = data.postId;
@@ -44,7 +54,7 @@ const updateLike = (data) => {
 class LikesApi {
 
     static entryInLikes(data) {
-        const db = getConn()
+        console.log('in function', data.postId);
         const likesData = {};
         likesData.postId = data.postId;
         likesData.userId = data.userId;
@@ -54,18 +64,16 @@ class LikesApi {
             try {
                 const like = new likesSchema(likesData);
                 const result = like.save();
+                console.log("like created for", likesData.postId);
                 resolve(result);
             } catch (err) {
-                console.log("reject");
+                console.log("reject", err);
                 reject("messed up")
-            } finally {
-                db.disconnect();
             }
         })
     }
 
     static likePost(data) {
-        const db = getConn()
         const postId = data.postId;
         const userId = data.userId;
 
@@ -76,14 +84,11 @@ class LikesApi {
             } catch (e) {
                 console.log("reject");
                 reject("messed up")
-            } finally {
-                db.disconnect();
             }
         })
     }
 
     static unLikePost(data) {
-        const db = getConn()
         const postId = data.postId;
         const userId = data.userId;
 
@@ -94,15 +99,12 @@ class LikesApi {
             } catch (e) {
                 console.log("reject");
                 reject("messed up")
-            } finally {
-                db.disconnect();
             }
         })
     }
 
     static removeLikeByPostId(data) {
-        console.log(data)
-        const db = getConn()
+        console.log(`this is data ${data}`)
         return new Promise((resolve, reject) => {
             likesSchema.deleteOne({ postId: data.postId }).then(result => {
                 resolve(result)
@@ -114,6 +116,41 @@ class LikesApi {
         })
     }
 }
+
+async function main() {
+    console.log('redis');
+    await client.connect();
+    while (1) {
+        const response = await client.brPop(
+            commandOptions({ isolated: true }),
+            'like-queue',
+            0
+        );
+        // console.log(JSON.parse(response.element));
+        const data = JSON.parse(response.element);
+        switch (data.type) {
+            case 'POST_LIKE_INSERT':
+                LikesApi.entryInLikes(data)
+                break;
+            case 'POST_LIKE_REMOVE':
+                LikesApi.removeLikeByPostId(data)
+                break;
+            case 'COMM_LIKE_INSERT':
+
+                break;
+            case 'COMM_LIKE_REMOVE':
+
+                break;
+            default:
+
+                break;
+        }
+        // LikesApi.entryInLikes(data)
+    }
+
+}
+
+main();
 
 export default LikesApi;
 
