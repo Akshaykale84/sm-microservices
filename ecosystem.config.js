@@ -81,6 +81,30 @@ module.exports = {
       PORT: 7000,
       NODE_ENV: 'production'
     }
+  },
+  {
+    cwd: 'sm-posts',
+    name: 'sm-posts',
+    script: './sm-posts/index.js',
+    args: 'run build',
+    restartDelay: 1000,
+    instances: 1,
+    autorestart: true,
+    exec_mode: "fork",
+    watch: false,
+    max_memory_restart: '200M',
+    env: {
+      ...commonEnv.dev,
+      SERVICE_NAME: 'sm-posts',
+      PORT: 9000,
+      NODE_ENV: 'development'
+    },
+    env_production: {
+      ...commonEnv.prod,
+      SERVICE_NAME: 'sm-posts',
+      PORT: 9000,
+      NODE_ENV: 'production'
+    }
   }
   ]
 };

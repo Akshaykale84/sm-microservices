@@ -17,14 +17,14 @@ const likesProxy = createProxyMiddleware({
   changeOrigin: true
 });
 
-const paymentProxy = createProxyMiddleware({
-  target: 'http://localhost:3003',
+const postsProxy = createProxyMiddleware({
+  target: 'http://localhost:9000',
   changeOrigin: true
 });
 
 app.use('/comm', commProxy);
 app.use('/likes', likesProxy);
-app.use('/payments', paymentProxy);
+app.use('/posts', postsProxy);
 
 
 app.listen(5000);
