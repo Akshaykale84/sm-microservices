@@ -42,6 +42,7 @@ class CommApi {
     }
 
     static async deleteCommentByUserId(data) {
+        const db = getConn()
         return new Promise((resolve, reject) => {
             console.log(data);
             comm.deleteOne({ commId: data.commId, userId: data.userId }).then(data => {

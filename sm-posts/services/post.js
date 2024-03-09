@@ -66,6 +66,7 @@ class PostApi {
     }
 
     static async getPostByUser(userId) {
+        const db = getConn();
         return new Promise((resolve, reject) => {
             postSchema.find({ userId: userId }).sort({ createdAt: -1 }).then(data => {
                 if (data) {
@@ -79,12 +80,17 @@ class PostApi {
     }
 
     static async deletePostByUserId(postId, userId) {
-        return new Promise((resolve, reject)=> {
-            postSchema.deleteOne({postId: postId, userId: userId}).then(data => {
-                if(data){
-                   resolve(data)
+        const db = getConn();
+        return new Promise((resolve, reject) => {
+            postSchema.deleteOne({ postId: postId, userId: userId }).then(data => {
+                if (data) {
+                    const like = { postId: postId }
+                    axios.delete('http://localhost:7000/likes/remove', { data: { postId: postId }})
+                        .then((value) => { }) //Have to write log for like creation
+                        .catch((e) => { })
+                    resolve(data)
                 }
-            }).catch(e =>{
+            }).catch(e => {
                 reject('error')
             })
         })
