@@ -19,7 +19,7 @@ publisher.on('error', err => console.log('Redis Client Error', err));
 await publisher.connect()
 const insertToQueue = async (data)=>{
     await publisher.lPush("like-queue", JSON.stringify(data));
-
+    await publisher.lPush("comm-queue", JSON.stringify(data))
 }
 
 const s3 = new aws.S3({

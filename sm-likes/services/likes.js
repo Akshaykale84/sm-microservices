@@ -10,7 +10,9 @@ const subscriber = createClient({
         port: process.env.REDIS_PORT
     }
 });
+
 subscriber.on('error', err => console.log('Redis Client Error', err));
+
 function entryInLikes(data) {
     const likesData = {};
     likesData.postId = data.postId;
@@ -130,10 +132,10 @@ async function main() {
         const data = JSON.parse(response.element);
         switch (data.type) {
             case 'POST_LIKE_INSERT':
-                LikesApi.entryInLikes(data)
+               await LikesApi.entryInLikes(data)
                 break;
             case 'POST_LIKE_REMOVE':
-                LikesApi.removeLikeByPostId(data)
+               await LikesApi.removeLikeByPostId(data)
                 break;
             case 'COMM_LIKE_INSERT':
 
