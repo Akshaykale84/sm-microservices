@@ -12,6 +12,7 @@ const app = express();
 
 import http from 'http';
 import { Server } from 'socket.io';
+import { Console } from 'console';
 const server = http.createServer(app);
 const io = new Server(server);
 
@@ -71,6 +72,34 @@ io.on('connection', (socket) => {
         let likes = await LikeModel.findOne({postId: postId}, {noOfLikes:1, _id: 0});
         return likes.noOfLikes;
     }
+    
+    const getLikeDetails = async(userId, postId) => {
+        try {
+            const result = await LikeModel.aggregate([
+              {
+                $match: {
+                  postId: postId
+                }
+              },
+              {
+                $project: {
+                  likes: { $size: "$likes" },
+                  isLiked: {
+                    $in: [userId, "$likes"]
+                  },
+                  _id: 0
+                }
+              }
+            ]).exec();
+            
+            // console.log("Result:", result[0]);
+            return result[0];
+            // Process result
+          } catch (err) {
+            console.error("Error:", err);
+            // Handle error
+          }
+    }
 
     const isPostLikedByUser = async(userId, postId) => {
         let isLiked = await LikeModel.findOne({postId: postId, likes: { $in: [userId]}})
@@ -87,8 +116,12 @@ io.on('connection', (socket) => {
             do {
                 randomPost = await PostModel.findOne().skip(Math.floor(Math.random() * totalPostCount));
             } while (clientSentPostIds.get(clientId)?.has(randomPost.postId));
-            randomPost.likes = await getPostLikes(randomPost.postId)
-            randomPost.isLiked = await isPostLikedByUser(connectedUsers.get(socket.id), randomPost.postId);
+            // randomPost.likes = await getPostLikes(randomPost.postId)
+            // randomPost.isLiked = await isPostLikedByUser(connectedUsers.get(socket.id), randomPost.postId);
+            const { likes, isLiked } = await getLikeDetails(connectedUsers.get(socket.id), randomPost.postId);
+            randomPost.likes = likes;
+            randomPost.isLiked = isLiked;
+            if(randomPost.isLiked) console.log(randomPost);
             return randomPost;
         } catch (error) {
             console.error('Error fetching random post:', error.message);
@@ -118,7 +151,7 @@ io.on('connection', (socket) => {
             }
             // If there are still posts to send, set a timeout for the next emit
             if (clientSentPostIds.get(clientId).size < totalPostCount && sendData && connectedUsers.get(clientId)) {
-                setTimeout(() => emitRandomPosts(clientId), 1000); // Adjust the delay as needed
+                setTimeout(() => emitRandomPosts(clientId), 100); // Adjust the delay as needed
             }
         } catch (error) {
             console.error('Error emitting random posts:', error.message);
